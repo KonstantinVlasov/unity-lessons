@@ -49,7 +49,7 @@ public class Character : MonoBehaviour
     {
         if (state == State.Death || target.state == State.Death)
         {
-            Debug.Log("The character " + name + " is dead, all actions are prohibited");
+            Debug.Log("The character or target is dead, all actions are prohibited");
             return;
         }
         switch (weapon) {
