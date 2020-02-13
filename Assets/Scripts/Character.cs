@@ -34,6 +34,7 @@ public class Character : MonoBehaviour
     Vector3 originalPosition;
     Quaternion originalRotation;
     State state = State.Idle;
+    bool isAvailable = true;
 
     // Start is called before the first frame update
     void Start()
@@ -42,6 +43,7 @@ public class Character : MonoBehaviour
         targetTransform = target.transform;
         originalPosition = transform.position;
         originalRotation = transform.rotation;
+        StartCoroutine(CharacterLoop());
     }
 
     [ContextMenu("Attack")]
@@ -67,14 +69,93 @@ public class Character : MonoBehaviour
         }
     }
 
+    public bool IsAvailable()
+    {
+        return isAvailable;
+    }
+
     public void SetState(State newState)
     {
         state = newState;
     }
 
-    // Update is called once per frame
+    IEnumerator CharacterLoop()
+    {
+        while (IsAvailable())
+        {
+            switch (state)
+            {
+                case State.Idle:
+                    animator.SetFloat("speed", 0.0f);
+                    transform.rotation = originalRotation;
+                    break;
+
+                case State.RunningToEnemy:
+                    animator.SetFloat("speed", runSpeed);
+                    while (!RunTowards(target.transform.position, distanceFromEnemy))
+                        yield return null;
+                    switch (weapon)
+                    {
+                        case Weapon.Bat:
+                            state = State.BeginAttack;
+                            break;
+                        case Weapon.Fist:
+                            state = State.BeginFist;
+                            break;
+                    }
+                    break;
+
+                case State.RunningFromEnemy:
+                    animator.SetFloat("speed", runSpeed);
+                    while (!RunTowards(originalPosition, 0.0f))
+                        yield return null;
+                    state = State.Idle;
+                    break;
+
+                case State.BeginAttack:
+                    animator.SetFloat("speed", 0.0f);
+                    animator.SetTrigger("attack");
+                    state = State.Attack;
+                    break;
+
+                case State.Attack:
+                    animator.SetFloat("speed", 0.0f);
+                    break;
+
+                case State.BeginShoot:
+                    animator.SetFloat("speed", 0.0f);
+                    animator.SetTrigger("shoot");
+                    state = State.Shoot;
+                    break;
+
+                case State.Shoot:
+                    animator.SetFloat("speed", 0.0f);
+                    break;
+
+                case State.BeginFist:
+                    animator.SetFloat("speed", 0.0f);
+                    animator.SetTrigger("fist");
+                    state = State.Fist;
+                    break;
+
+                case State.Fist:
+                    animator.SetFloat("speed", 0.0f);
+                    break;
+
+                case State.Death:
+                    animator.SetFloat("speed", 0.0f);
+                    animator.SetTrigger("death");
+                    isAvailable = false;
+                    break;
+            }
+            yield return null;
+        }
+    }
+
+            // Update is called once per frame
     void FixedUpdate()
     {
+        return;
         switch (state) {
             case State.Idle:
                 animator.SetFloat("speed", 0.0f);
